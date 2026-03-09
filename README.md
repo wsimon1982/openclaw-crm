@@ -103,6 +103,52 @@ go install github.com/nicholasgasior/gws@latest
 gws auth login
 ```
 
+### gspread Backend (Recommended)
+
+A fully implemented `GspreadBackend` is included. Install the optional dependency and swap in the backend:
+
+```bash
+pip install "openclaw-crm[gspread]"
+```
+
+**Service account authentication (recommended for servers):**
+
+```python
+import gspread
+from openclaw_crm.backends.gspread_backend import GspreadBackend
+from openclaw_crm.sheets import set_backend
+
+gc = gspread.service_account(filename="service_account.json")
+set_backend(GspreadBackend(gc))
+```
+
+**OAuth (for local/interactive use):**
+
+```python
+import gspread
+from openclaw_crm.backends.gspread_backend import GspreadBackend
+from openclaw_crm.sheets import set_backend
+
+gc = gspread.oauth()  # opens browser for consent
+set_backend(GspreadBackend(gc))
+```
+
+**Application Default Credentials (Cloud Run, GCE, etc.):**
+
+```python
+import gspread
+from google.auth import default as google_auth_default
+from openclaw_crm.backends.gspread_backend import GspreadBackend
+from openclaw_crm.sheets import set_backend
+
+creds, _ = google_auth_default(scopes=["https://www.googleapis.com/auth/spreadsheets"])
+gc = gspread.auth.local_server_flow(scopes=["https://www.googleapis.com/auth/spreadsheets"])
+set_backend(GspreadBackend(gc))
+```
+
+Range notation supports an optional sheet name prefix (`"SheetName!A1:Z"`). When no
+`!` is present the first worksheet is used.
+
 ### Custom Backend
 
 Implement the `SheetsBackend` interface to use any Google Sheets library:
@@ -110,25 +156,20 @@ Implement the `SheetsBackend` interface to use any Google Sheets library:
 ```python
 from openclaw_crm.sheets import SheetsBackend, SheetResult, set_backend
 
-class GspreadBackend(SheetsBackend):
-    def __init__(self, credentials_path):
-        import gspread
-        self.gc = gspread.service_account(filename=credentials_path)
-
+class MyCustomBackend(SheetsBackend):
     def read(self, spreadsheet_id, range_):
-        sh = self.gc.open_by_key(spreadsheet_id)
-        worksheet = sh.worksheet(range_.split("!")[0].strip("'"))
-        return SheetResult(success=True, data={"values": worksheet.get_all_values()})
+        # ...implement
+        return SheetResult(success=True, data=[])
 
     def append(self, spreadsheet_id, range_, values):
         # ...implement
-        pass
+        return SheetResult(success=True, data={})
 
     def update(self, spreadsheet_id, range_, values):
         # ...implement
-        pass
+        return SheetResult(success=True, data={})
 
-set_backend(GspreadBackend("credentials.json"))
+set_backend(MyCustomBackend())
 ```
 
 ## 🤖 AI Agents Welcome!
