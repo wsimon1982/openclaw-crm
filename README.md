@@ -174,3 +174,28 @@ Come build with us! 🚀
 ## License
 
 MIT
+
+## Airtable Backend
+
+Use Airtable instead of Google Sheets:
+
+```bash
+pip install openclaw-crm[airtable]
+
+export AIRTABLE_API_KEY="your_api_key"
+export AIRTABLE_BASE_ID="your_base_id"
+
+# In your code
+from openclaw_crm.backend_airtable import AirtableBackend
+backend = AirtableBackend()
+
+# Or pass explicitly
+backend = AirtableBackend(api_key="key", base_id="base")
+```
+
+### Airtable Setup
+
+1. Create base with tables: `Pipeline`, `Network`
+2. Pipeline fields: `Client`, `Contact`, `Source`, `Stage`, `Budget`, `Rate Type`, `Service`, `Notes`, `Added`, `Updated`
+3. Get API key from https://airtable.com/account
+4. Get base ID from base URL (appXXXXXXXXXX)
